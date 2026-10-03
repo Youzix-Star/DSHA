@@ -67,6 +67,8 @@ class DshaController(private val context: Context) {
         private set
     var useLiquidGlass by mutableStateOf(prefs.useLiquidGlass)
         private set
+    var developerMode by mutableStateOf(prefs.developerMode)
+        private set
 
     val setupLog = mutableStateListOf<String>()
     val consoleLog = mutableStateListOf<String>()
@@ -98,6 +100,28 @@ class DshaController(private val context: Context) {
         prefs.useLiquidGlass = value
         useLiquidGlass = value
     }
+
+    fun updateDeveloperMode(value: Boolean) {
+        prefs.developerMode = value
+        developerMode = value
+    }
+
+    /** 供调试信息面板读取当前快照。 */
+    fun statusSnapshot(): List<Pair<String, String>> = listOf(
+        "Termux 已安装" to if (termuxInstalled) "是" else "否",
+        "RUN_COMMAND 权限" to if (permissionGranted) "已授予" else "未授予",
+        "命令桥接" to if (bridgeOk) "已连通" else "未连通",
+        "桥接错误" to (bridgeError ?: "-"),
+        "dsh 命令" to if (dshBinAvailable) "存在" else "缺失",
+        "dsh 版本" to dshVersion,
+        "Node 版本" to nodeVersion,
+        "安装目录" to if (installDirReady) "存在" else "缺失",
+        "脚本仓库" to if (repoCloned) "已克隆" else "未克隆",
+        "Web 服务" to if (serverRunning) "运行中" else "已停止",
+        "任务状态" to if (busy) busyLabel.ifBlank { "执行中" } else "空闲",
+        "控制台行数" to consoleLog.size.toString(),
+        "引导输出行数" to setupLog.size.toString(),
+    )
 
     /** 重新检测环境与运行状态 */
     fun refresh() {

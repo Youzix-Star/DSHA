@@ -7,24 +7,33 @@ package com.youzixstar.dsha.ui.miuix.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.youzixstar.dsha.BuildConfig
 import com.youzixstar.dsha.DSH_WEB_URL
 import com.youzixstar.dsha.setup.DshaController
+import com.youzixstar.dsha.ui.AppIcons
+import com.youzixstar.dsha.ui.miuix.DebugInfoDialog
 import com.youzixstar.dsha.ui.miuix.ThemeModeOptions
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 /**
@@ -32,6 +41,9 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
  *
  * 卡内放 miuix 偏好组件时不设 `insideMargin`：这些组件自带 16dp 内边距，
  * 外层再给会双重留白。只有卡内是裸 Text/Row 时才需要自己补。
+ *
+ * 选项类设置不铺开成一行一项，统一用 [WindowSpinnerPreference] 一行点开选择器，
+ * 与 NekoPlus 的设置页一致。
  */
 @Composable
 fun SettingsScreen(
@@ -41,6 +53,9 @@ fun SettingsScreen(
     onOpenGuide: () -> Unit,
     onNotify: (String) -> Unit,
 ) {
+    val themeItems = remember { ThemeModeOptions.map { DropdownItem(text = it.second) } }
+    var showDebug by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -53,16 +68,18 @@ fun SettingsScreen(
             Column {
                 SmallTitle(text = "外观")
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    ThemeModeOptions.forEachIndexed { index, (_, label) ->
-                        RadioButtonPreference(
-                            title = label,
-                            selected = controller.themeModeIndex == index,
-                            onClick = {
-                                controller.updateThemeModeIndex(index)
-                                onNotify("主题已切换为$label")
-                            },
-                        )
-                    }
+                    WindowSpinnerPreference(
+                        title = "主题模式",
+                        items = themeItems,
+                        selectedIndex = controller.themeModeIndex.coerceIn(0, themeItems.lastIndex),
+                        onSelectedIndexChange = { index -> controller.updateThemeModeIndex(index) },
+                    )
+                    SwitchPreference(
+                        title = "液态玻璃底栏",
+                        summary = "底栏实时模糊与高光",
+                        checked = controller.useLiquidGlass,
+                        onCheckedChange = { controller.updateUseLiquidGlass(it) },
+                    )
                 }
             }
         }
@@ -72,22 +89,16 @@ fun SettingsScreen(
                 SmallTitle(text = "使用")
                 Card(modifier = Modifier.fillMaxWidth()) {
                     SwitchPreference(
-                        checked = controller.autoStart,
-                        onCheckedChange = { controller.updateAutoStart(it) },
                         title = "进入应用时自动启动服务",
                         summary = "打开 DSHA 且服务未运行时自动拉起 DSH",
+                        checked = controller.autoStart,
+                        onCheckedChange = { controller.updateAutoStart(it) },
                     )
                     SwitchPreference(
-                        checked = controller.keepScreenOn,
-                        onCheckedChange = { controller.updateKeepScreenOn(it) },
                         title = "保持屏幕常亮",
                         summary = "长时间使用 Web UI 时避免息屏",
-                    )
-                    SwitchPreference(
-                        checked = controller.useLiquidGlass,
-                        onCheckedChange = { controller.updateUseLiquidGlass(it) },
-                        title = "液态玻璃",
-                        summary = "底栏与内容层使用背景模糊",
+                        checked = controller.keepScreenOn,
+                        onCheckedChange = { controller.updateKeepScreenOn(it) },
                     )
                 }
             }
@@ -100,6 +111,13 @@ fun SettingsScreen(
                     ArrowPreference(
                         title = "环境配置引导",
                         summary = "检测 Termux、权限与服务状态",
+                        startAction = {
+                            Icon(
+                                imageVector = AppIcons.Grant,
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        },
                         onClick = onOpenGuide,
                     )
                     ArrowPreference(
@@ -121,6 +139,34 @@ fun SettingsScreen(
             }
         }
 
+        if (controller.developerMode) {
+            item(key = "debug") {
+                Column {
+                    SmallTitle(text = "调试")
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        ArrowPreference(
+                            title = "调试信息",
+                            summary = "系统、WebView 引擎与运行状态快照",
+                            startAction = {
+                                Icon(
+                                    imageVector = AppIcons.Rule,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                )
+                            },
+                            onClick = { showDebug = true },
+                        )
+                        SwitchPreference(
+                            title = "开发者模式",
+                            summary = "在关于页连点彩蛋三次可切换",
+                            checked = true,
+                            onCheckedChange = { controller.updateDeveloperMode(it) },
+                        )
+                    }
+                }
+            }
+        }
+
         item(key = "about") {
             Column {
                 SmallTitle(text = "关于")
@@ -138,5 +184,13 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showDebug) {
+        DebugInfoDialog(
+            controller = controller,
+            onDismiss = { showDebug = false },
+            onNotify = onNotify,
+        )
     }
 }

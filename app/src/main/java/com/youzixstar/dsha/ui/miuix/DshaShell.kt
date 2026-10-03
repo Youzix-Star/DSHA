@@ -36,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.youzixstar.dsha.setup.DshaController
 import com.youzixstar.dsha.ui.AppIcons
+import com.youzixstar.dsha.ui.miuix.about.AboutScreen
 import com.youzixstar.dsha.ui.miuix.console.ConsoleScreen
 import com.youzixstar.dsha.ui.miuix.guide.GuideScreen
 import com.youzixstar.dsha.ui.miuix.home.HomeScreen
@@ -89,9 +90,10 @@ private fun DshaShell(controller: DshaController) {
             NavigationItem(label = "网页", icon = AppIcons.Web),
             NavigationItem(label = "终端", icon = AppIcons.Terminal),
             NavigationItem(label = "设置", icon = AppIcons.Settings),
+            NavigationItem(label = "关于", icon = AppIcons.About),
         )
     }
-    val titles = remember { listOf("DSHA", "网页", "终端", "设置") }
+    val titles = remember { listOf("DSHA", "网页", "终端", "设置", "关于") }
 
     val pagerState = rememberPagerState(pageCount = { navigationItems.size })
     val scrollBehavior = MiuixScrollBehavior()
@@ -187,11 +189,18 @@ private fun DshaShell(controller: DshaController) {
                                 onNotify = notify,
                             )
 
-                            else -> SettingsScreen(
+                            TAB_SETTINGS -> SettingsScreen(
                                 controller = controller,
                                 contentPadding = pagePadding,
                                 scrollBehavior = scrollBehavior,
                                 onOpenGuide = { subPage = DshaSubPage.Guide },
+                                onNotify = notify,
+                            )
+
+                            else -> AboutScreen(
+                                controller = controller,
+                                contentPadding = pagePadding,
+                                scrollBehavior = scrollBehavior,
                                 onNotify = notify,
                             )
                         }

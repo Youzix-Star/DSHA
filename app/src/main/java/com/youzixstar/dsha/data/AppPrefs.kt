@@ -29,10 +29,16 @@ class AppPrefs(context: Context) {
         get() = sp.getBoolean(KEY_LIQUID_GLASS, true)
         set(value) = sp.edit().putBoolean(KEY_LIQUID_GLASS, value).apply()
 
+    /** 开发者模式：在关于页连点三次彩蛋开启。 */
+    var developerMode: Boolean
+        get() = sp.getBoolean(KEY_DEVELOPER_MODE, false)
+        set(value) = sp.edit().putBoolean(KEY_DEVELOPER_MODE, value).apply()
+
     private companion object {
         const val KEY_AUTO_START = "auto_start"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_LIQUID_GLASS = "liquid_glass"
+        const val KEY_DEVELOPER_MODE = "developer_mode"
     }
 }
