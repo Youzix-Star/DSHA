@@ -109,9 +109,9 @@ private fun DshaShell(controller: DshaController) {
     }
 
     val currentTab = pagerState.currentPage
-    // 底栏始终是液态玻璃。但「网页」页签里是独立的原生 WebView：把它放进被逐帧
-    // 重录的 backdrop 图层，既可能让互操作 View 画不出来，也会因为每帧重录整页
-    // 而严重掉帧，所以该页签不参与背景层捕获（底栏本身照常是玻璃质感）。
+    // 底栏始终是液态玻璃，且所有页签都参与背景层捕获，保证外观一致。
+    // WebView 是独立的原生视图，被放在 pager 之外、这个捕获图层之外，
+    // 因此既不会因为逐帧重录而掉帧，也不会被图层影响绘制。
     val onWebTab = currentTab == TAB_WEB
 
     // 首次进入「网页」页签后让 WebView 常驻：切页签不再重新加载那几十个插件模块
@@ -172,7 +172,9 @@ private fun DshaShell(controller: DshaController) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .then(if (onWebTab) Modifier else Modifier.layerBackdrop(backdrop))
+                            // 所有页签都捕获背景层：否则「网页」页签上底栏会采到上一次
+                            // 录下的旧内容，看起来就是「变色」。
+                            .layerBackdrop(backdrop)
                             .imePadding(),
                     ) {
                         HorizontalPager(
@@ -218,7 +220,7 @@ private fun DshaShell(controller: DshaController) {
                                 .fillMaxSize()
                                 .padding(pagePadding),
                         ) {
-                            WebScreen(visible = onWebTab)
+                            WebScreen(controller = controller, visible = onWebTab)
                         }
                     }
                 }

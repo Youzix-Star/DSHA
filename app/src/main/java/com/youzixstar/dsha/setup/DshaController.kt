@@ -67,9 +67,14 @@ class DshaController(private val context: Context) {
         private set
     var developerMode by mutableStateOf(prefs.developerMode)
         private set
+    var uaMode by mutableStateOf(prefs.uaMode)
+        private set
 
     val setupLog = mutableStateListOf<String>()
     val consoleLog = mutableStateListOf<String>()
+
+    /** 网页控制台输出。放在控制器上，调试信息面板才能一并看到。 */
+    val webConsole = mutableStateListOf<String>()
 
     /** 桥接与 dsh 命令均可用，功能完整 */
     val ready: Boolean get() = bridgeOk && dshBinAvailable
@@ -92,6 +97,11 @@ class DshaController(private val context: Context) {
     fun updateThemeModeIndex(value: Int) {
         prefs.themeModeIndex = value
         themeModeIndex = value
+    }
+
+    fun updateUaMode(value: Int) {
+        prefs.uaMode = value
+        uaMode = value
     }
 
     fun updateDeveloperMode(value: Boolean) {
@@ -234,6 +244,15 @@ class DshaController(private val context: Context) {
 
     fun clearConsole() {
         consoleLog.clear()
+    }
+
+    fun appendWebConsole(line: String) {
+        webConsole.add(line)
+        while (webConsole.size > 200) webConsole.removeAt(0)
+    }
+
+    fun clearWebConsole() {
+        webConsole.clear()
     }
 
     private fun runSetupTask(label: String, command: () -> String, timeoutMs: Long) {

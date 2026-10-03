@@ -5,6 +5,7 @@
 
 package com.youzixstar.dsha.ui.miuix.web
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
@@ -12,6 +13,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import android.webkit.WebSettings
 import android.webkit.WebViewClient
 import android.view.View
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.youzixstar.dsha.DSH_WEB_URL
+import com.youzixstar.dsha.setup.DshaController
 import com.youzixstar.dsha.ui.DebugInfo
 import com.youzixstar.dsha.ui.copyToClipboard
 import com.youzixstar.dsha.ui.openUrl
@@ -68,15 +70,16 @@ private sealed interface WebStatus {
  * 从而在切页签时不重新加载、也不残留绘制开销。
  */
 @Composable
-fun WebScreen(visible: Boolean) {
+fun WebScreen(controller: DshaController, visible: Boolean) {
     val context = LocalContext.current
+    val console = controller.webConsole
+    val uaMode = controller.uaMode
     var status by remember { mutableStateOf<WebStatus>(WebStatus.Loading) }
-    val console = remember { mutableStateListOf<String>() }
     var reloadKey by remember { mutableIntStateOf(0) }
     var showConsole by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        key(reloadKey) {
+        key(reloadKey, uaMode) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
@@ -84,7 +87,21 @@ fun WebScreen(visible: Boolean) {
                         visibility = if (visible) View.VISIBLE else View.GONE
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
+                        // 视口与布局：缺了 useWideViewPort，带 width=device-width 的页面
+                        // 会按默认宽度排版再缩放，复杂布局（如聊天滚动区）可能整块塌掉或
+                        // 被挤出视口——这正是「页面加载了、小挂件在、主界面不见了」的症状。
+                        settings.useWideViewPort = true
+                        settings.loadWithOverviewMode = true
+                        settings.setSupportZoom(false)
+                        settings.builtInZoomControls = false
+                        settings.displayZoomControls = false
+                        settings.textZoom = 100
+                        settings.cacheMode = WebSettings.LOAD_DEFAULT
+                        settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                         settings.mediaPlaybackRequiresUserGesture = false
+                        if (uaMode == 1) {
+                            settings.userAgentString = browserLikeUserAgent(ctx)
+                        }
 
                         webViewClient = object : WebViewClient() {
                             override fun onPageStarted(
@@ -128,11 +145,10 @@ fun WebScreen(visible: Boolean) {
 
                         webChromeClient = object : WebChromeClient() {
                             override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
-                                console.add(
+                                controller.appendWebConsole(
                                     "[${msg.messageLevel()}] ${msg.message()}" +
                                         "  @${msg.sourceId()}:${msg.lineNumber()}",
                                 )
-                                while (console.size > 200) console.removeAt(0)
                                 return true
                             }
                         }
@@ -247,3 +263,13 @@ fun WebScreen(visible: Boolean) {
         }
     }
 }
+
+/**
+ * 去掉 WebView 默认 UA 里的嵌入式标记（`; wv` 与 `Version/4.0`），使其与普通浏览器一致。
+ *
+ * 部分网页会嗅探这些标记并对嵌入式 WebView 走降级分支，因此提供这一开关用于排查。
+ */
+private fun browserLikeUserAgent(context: Context): String =
+    WebSettings.getDefaultUserAgent(context)
+        .replace("; wv", "")
+        .replace("Version/4.0 ", "")

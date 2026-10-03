@@ -29,7 +29,19 @@ class AppPrefs(context: Context) {
         get() = sp.getBoolean(KEY_DEVELOPER_MODE, false)
         set(value) = sp.edit().putBoolean(KEY_DEVELOPER_MODE, value).apply()
 
+    /**
+     * 网页 User-Agent 模式：
+     * 0 = 系统 WebView 默认（含 `; wv` 与 `Version/4.0` 标记）
+     * 1 = 去掉这些标记，伪装成普通浏览器
+     *
+     * 部分网页会嗅探 `wv` 标记并对嵌入式 WebView 走降级分支，这一项用于排除该因素。
+     */
+    var uaMode: Int
+        get() = sp.getInt(KEY_UA_MODE, 0)
+        set(value) = sp.edit().putInt(KEY_UA_MODE, value).apply()
+
     private companion object {
+        const val KEY_UA_MODE = "ua_mode"
         const val KEY_AUTO_START = "auto_start"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
         const val KEY_THEME_MODE = "theme_mode"

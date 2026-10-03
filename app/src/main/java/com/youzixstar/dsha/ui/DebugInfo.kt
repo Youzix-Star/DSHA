@@ -42,6 +42,13 @@ object DebugInfo {
         appendLine()
         appendLine("## 运行状态")
         controller.statusSnapshot().forEach { (key, value) -> appendLine("$key: $value") }
+        appendLine()
+        appendLine("## 网页控制台（最近 ${minOf(controller.webConsole.size, 30)} 条，共 ${controller.webConsole.size} 条）")
+        if (controller.webConsole.isEmpty()) {
+            appendLine("(暂无输出)")
+        } else {
+            controller.webConsole.takeLast(30).forEach { appendLine(it) }
+        }
     }
 
     /**

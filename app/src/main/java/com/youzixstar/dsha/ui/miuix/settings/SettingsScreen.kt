@@ -78,6 +78,12 @@ fun SettingsScreen(
     val context = LocalContext.current
     val themeItems = remember { ThemeModeOptions.map { DropdownItem(text = it.second) } }
 
+    val uaItems = remember {
+        listOf(
+            DropdownItem(text = "系统默认"),
+            DropdownItem(text = "伪装浏览器"),
+        )
+    }
     var showDebug by remember { mutableStateOf(false) }
     var tapCount by remember { mutableIntStateOf(0) }
     var lastTapAt by remember { mutableLongStateOf(0L) }
@@ -154,6 +160,16 @@ fun SettingsScreen(
                         title = "Web UI 地址",
                         summary = DSH_WEB_URL,
                         enabled = false,
+                    )
+                    WindowSpinnerPreference(
+                        title = "网页 User-Agent",
+                        summary = "若网页按嵌入式标记走了降级分支，切到「伪装浏览器」试试",
+                        items = uaItems,
+                        selectedIndex = controller.uaMode.coerceIn(0, uaItems.lastIndex),
+                        onSelectedIndexChange = { index ->
+                            controller.updateUaMode(index)
+                            onNotify("已切换 User-Agent")
+                        },
                     )
                 }
             }
