@@ -48,7 +48,6 @@ jobs:
           name: dsha-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          archive: false
           retention-days: 30
 
   release:
@@ -67,12 +66,25 @@ jobs:
           name: dsha-debug-apk
           path: dist
 
+      - name: Locate APK
+        id: apk
+        run: |
+          set -euo pipefail
+          find dist -type f | sort
+          APK="$(find dist -type f -name '*.apk' | head -n 1)"
+          if [ -z "$APK" ]; then
+            echo "::error::下载的产物中没有找到 APK"
+            exit 1
+          fi
+          mkdir -p upload
+          cp "$APK" "upload/dsha-${GITHUB_REF_NAME}-debug.apk"
+          echo "path=upload/dsha-${GITHUB_REF_NAME}-debug.apk" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mv dist/app-debug.apk "dist/dsha-${GITHUB_REF_NAME}-debug.apk"
           gh release create "${GITHUB_REF_NAME}" \
-            "dist/dsha-${GITHUB_REF_NAME}-debug.apk" \
+            "${{ steps.apk.outputs.path }}" \
             --title "DSHA ${GITHUB_REF_NAME}" \
             --generate-notes
