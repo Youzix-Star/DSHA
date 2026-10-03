@@ -1,0 +1,28 @@
+DSHA — DeepSeek Harness for Android 安装器
+Copyright (C) 2026 Youzix_Star
+
+本程序是自由软件：你可以再分发和/或修改它，遵循自由软件基金会发布的
+GNU 通用公共许可证第 3 版（或你选择的任何更新版本）的条款。
+
+本程序基于以下开源项目构建，在此致谢：
+
+1. InstallerX Revived  — https://github.com/wxxsfxyzm/InstallerX-Revived
+   许可证：GPL-3.0
+   用途：本项目的 UI 方案、页面组织方式与交互约定参考/照搬自该项目。
+         InstallerX Revived 是 GPL-3.0 项目，因此 DSHA 亦以 GPL-3.0 发布。
+
+2. Miuix (compose-miuix-ui) — https://github.com/compose-miuix-ui/miuix
+   许可证：Apache-2.0
+   用途：底层 UI 组件库（Compose Multiplatform），通过 Maven Central
+         坐标 top.yukonga.miuix.kmp:* 以依赖方式使用，未修改其源码。
+
+3. Termux / termux-app — https://github.com/termux/termux-app
+   许可证：GPL-3.0
+   用途：作为运行宿主环境，通过其公开的 RUN_COMMAND 接口调用，
+         未包含或修改其源码。
+
+4. deepseek-harness-android — https://github.com/FunnelCakes/deepseek-harness-android
+   用途：Android/Termux 上安装与运行 DSH 的脚本方案，本安装器在其之上提供图形界面。
+
+5. DeepSeek Harness (@deepseek-ai/dsh) — https://github.com/deepseek-ai/deepseek-harness
+   用途：本安装器所安装与托管的目标程序。
