@@ -35,7 +35,6 @@ import com.youzixstar.dsha.BuildConfig
 import com.youzixstar.dsha.DSH_WEB_URL
 import com.youzixstar.dsha.setup.DshaController
 import com.youzixstar.dsha.ui.AppIcons
-import com.youzixstar.dsha.ui.miuix.BarStyle
 import com.youzixstar.dsha.ui.miuix.DebugInfoDialog
 import com.youzixstar.dsha.ui.miuix.ThemeModeOptions
 import com.youzixstar.dsha.ui.openUrl
@@ -55,9 +54,6 @@ private const val REPOSITORY_URL = "https://github.com/Youzix-Star/DSHA"
 private const val DEVELOPER_URL = "https://github.com/Youzix-Star"
 private const val TERMUX_URL = "https://github.com/termux/termux-app"
 private const val DSH_URL = "https://github.com/deepseek-ai/deepseek-harness"
-
-/** 底栏可用模糊半径（dp），对应 miuix `textureBlur` 的 blurRadius。 */
-private val BLUR_RADIUS_OPTIONS = listOf(15, 20, 25, 35, 50)
 
 /** 连点彩蛋判定：1 秒内累计 3 次。 */
 private const val TAP_WINDOW_MS = 1000L
@@ -81,8 +77,6 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val themeItems = remember { ThemeModeOptions.map { DropdownItem(text = it.second) } }
-    val barStyleItems = remember { BarStyle.entries.map { DropdownItem(text = it.label) } }
-    val blurItems = remember { BLUR_RADIUS_OPTIONS.map { DropdownItem(text = "$it dp") } }
 
     var showDebug by remember { mutableStateOf(false) }
     var tapCount by remember { mutableIntStateOf(0) }
@@ -106,29 +100,6 @@ fun SettingsScreen(
                         selectedIndex = controller.themeModeIndex.coerceIn(0, themeItems.lastIndex),
                         onSelectedIndexChange = { controller.updateThemeModeIndex(it) },
                     )
-                    WindowSpinnerPreference(
-                        title = "底栏样式",
-                        summary = "标准：单 pass 纹理模糊，省电；液态玻璃：多 pass 折射，最漂亮但最重",
-                        items = barStyleItems,
-                        selectedIndex = controller.barStyle.coerceIn(0, barStyleItems.lastIndex),
-                        onSelectedIndexChange = { index ->
-                            controller.updateBarStyle(index)
-                            onNotify("底栏样式：${BarStyle.entries[index].label}")
-                        },
-                    )
-                    if (BarStyle.entries.getOrNull(controller.barStyle) == BarStyle.Standard) {
-                        WindowSpinnerPreference(
-                            title = "底栏模糊半径",
-                            summary = "纹理模糊的取样半径，越大越糊、也越费",
-                            items = blurItems,
-                            selectedIndex = BLUR_RADIUS_OPTIONS
-                                .indexOf(controller.barBlurRadius)
-                                .coerceAtLeast(0),
-                            onSelectedIndexChange = { index ->
-                                controller.updateBarBlurRadius(BLUR_RADIUS_OPTIONS[index])
-                            },
-                        )
-                    }
                 }
             }
         }

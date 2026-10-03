@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.youzixstar.dsha.DSH_WEB_URL
+import com.youzixstar.dsha.ui.DebugInfo
 import com.youzixstar.dsha.ui.copyToClipboard
 import com.youzixstar.dsha.ui.openUrl
 import top.yukonga.miuix.kmp.basic.Button
@@ -160,6 +161,16 @@ fun WebScreen(contentPadding: PaddingValues) {
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
+                if (failed != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "本机 WebView：" +
+                            "${DebugInfo.webViewEngineName()} · 明文放行：" +
+                            if (DebugInfo.cleartextPermitted("127.0.0.1")) "是" else "否",
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                }
 
                 if (failed != null && console.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(10.dp))
@@ -213,6 +224,10 @@ fun WebScreen(contentPadding: PaddingValues) {
                                 buildString {
                                     appendLine("地址: $DSH_WEB_URL")
                                     appendLine("错误: ${failed.message}")
+                                    appendLine(
+                                        "明文放行: " +
+                                            if (DebugInfo.cleartextPermitted("127.0.0.1")) "是" else "否",
+                                    )
                                     appendLine("控制台:")
                                     console.takeLast(50).forEach { appendLine(it) }
                                 },

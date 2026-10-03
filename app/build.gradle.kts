@@ -12,7 +12,10 @@ android {
         applicationId = "com.youzixstar.dsha"
         // 与 NekoPlus 对齐：液态玻璃底栏依赖 miuix-blur，其 AAR 声明 minSdk 33
         minSdk = 33
-        targetSdk = 37
+        // 用 37 编译（compileSdk），但只声明到 36：目标版本高于设备实际系统时，
+        // 所有最新行为开关都会被打开，而其中一部分（如 Android 17 的本地网络权限
+        // 强制执行、以及 WebView 对 targetSdk 的兼容判断）我们无法在真机上验证。
+        targetSdk = 36
         // 版本由 CI 依据 git tag 注入。此前这里写死成 0.1.0，导致装了 v0.3.0
         // 的应用在关于页仍自称 0.1.0；现在没有 tag 时会明确显示 -dev 而不是假版本号。
         val injectedName = System.getenv("DSHA_VERSION_NAME")

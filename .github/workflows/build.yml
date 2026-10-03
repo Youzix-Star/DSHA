@@ -58,6 +58,17 @@ jobs:
           DSHA_VERSION_CODE: ${{ steps.version.outputs.code }}
         run: ./gradlew assembleDebug --stacktrace
 
+      - name: Verify manifest
+        run: |
+          set -euo pipefail
+          MF=$(find app/build/intermediates -name AndroidManifest.xml -path '*merged*' | head -n 1)
+          echo "合并后的清单: $MF"
+          cat "$MF"
+          echo "--- 关键项核对 ---"
+          for key in 'networkSecurityConfig' 'android.permission.INTERNET' 'targetSdkVersion' 'com.termux.permission.RUN_COMMAND'; do
+            if grep -q "$key" "$MF"; then echo "  OK   $key"; else echo "  MISS $key"; fi
+          done
+
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
