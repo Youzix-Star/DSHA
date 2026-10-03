@@ -10,8 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import com.youzixstar.dsha.setup.DshaController
 import com.youzixstar.dsha.ui.page.ConsolePage
 import com.youzixstar.dsha.ui.page.SettingsPage
+import com.youzixstar.dsha.ui.page.SetupPage
 import com.youzixstar.dsha.ui.page.WebPage
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
@@ -29,7 +34,23 @@ private enum class DshaTab(val label: String, val icon: ImageVector) {
 
 @Composable
 fun DshaRoot() {
+    val context = LocalContext.current.applicationContext
+    val controller = remember { DshaController(context) }
     var current by remember { mutableIntStateOf(0) }
+
+    // 回到前台时重新检测：用户可能在 Termux 里改了配置或授权
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        controller.refresh()
+    }
+
+    // 安装引导：环境未就绪时作为门禁展示
+    if (controller.showSetup) {
+        SetupPage(
+            controller = controller,
+            onOpenWeb = { current = 0 },
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {
@@ -52,8 +73,8 @@ fun DshaRoot() {
         ) {
             when (DshaTab.entries[current]) {
                 DshaTab.Web -> WebPage()
-                DshaTab.Console -> ConsolePage()
-                DshaTab.Settings -> SettingsPage()
+                DshaTab.Console -> ConsolePage(controller)
+                DshaTab.Settings -> SettingsPage(controller)
             }
         }
     }

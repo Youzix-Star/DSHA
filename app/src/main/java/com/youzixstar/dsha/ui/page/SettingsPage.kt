@@ -14,13 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.youzixstar.dsha.setup.DshaController
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 @Composable
-fun SettingsPage() {
+fun SettingsPage(controller: DshaController) {
     var autoStart by remember { mutableStateOf(true) }
     var keepScreenOn by remember { mutableStateOf(false) }
 
@@ -32,17 +33,38 @@ fun SettingsPage() {
     ) {
         Spacer(Modifier.height(12.dp))
 
-        SmallTitle("服务")
+        SmallTitle("运行环境")
         Card {
             ArrowPreference(
                 title = "DSH Web UI 地址",
                 summary = DSH_WEB_URL,
             )
+            ArrowPreference(
+                title = "dsh 版本",
+                summary = controller.dshVersion,
+                enabled = false,
+            )
+            ArrowPreference(
+                title = "Node 版本",
+                summary = controller.nodeVersion,
+                enabled = false,
+            )
+            ArrowPreference(
+                title = "重新运行安装引导",
+                summary = "重新检测 Termux、权限与服务状态",
+                onClick = { controller.reopenSetup() },
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        SmallTitle("使用")
+        Card {
             SwitchPreference(
                 checked = autoStart,
                 onCheckedChange = { autoStart = it },
-                title = "进入应用时自动启动 DSH",
-                summary = "自动在 Termux 中拉起 DSH 服务",
+                title = "进入应用时自动启动服务",
+                summary = "打开 DSHA 时自动在 Termux 中拉起 DSH",
             )
             SwitchPreference(
                 checked = keepScreenOn,
@@ -64,6 +86,7 @@ fun SettingsPage() {
             ArrowPreference(
                 title = "开源许可",
                 summary = "GPL-3.0",
+                enabled = false,
             )
         }
 
