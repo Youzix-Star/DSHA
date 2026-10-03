@@ -22,6 +22,12 @@ UI 使用 [Miuix](https://github.com/compose-miuix-ui/miuix)，与 [InstallerX R
 - **终端页**：命令输入 + 输出回显 + 服务启停 / 日志查看
 - **网页页**：WebView 承载 DSH Web UI（`http://127.0.0.1:3080`）
 
+## 架构决策
+
+本项目**有意选择**通过 Termux 授权驱动，而非在 APK 内内置 Termux 或 Linux 容器。
+这一决策的实测依据（含 `RUNPATH`、proot 性能数据与备选方案排除理由）记录在
+[`docs/DECISIONS.md`](docs/DECISIONS.md)，避免后续重复调研。
+
 ## 安装引导的五个步骤
 
 | 步骤 | 检测方式 | 需要用户做什么 |
