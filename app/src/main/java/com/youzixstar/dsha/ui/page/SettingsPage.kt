@@ -66,13 +66,13 @@ fun SettingsPage(controller: DshaController) {
         Card {
             SwitchPreference(
                 checked = controller.autoStart,
-                onCheckedChange = { controller.setAutoStart(it) },
+                onCheckedChange = { controller.updateAutoStart(it) },
                 title = "进入应用时自动启动服务",
                 summary = "打开 DSHA 且服务未运行时自动拉起 DSH",
             )
             SwitchPreference(
                 checked = controller.keepScreenOn,
-                onCheckedChange = { controller.setKeepScreenOn(it) },
+                onCheckedChange = { controller.updateKeepScreenOn(it) },
                 title = "保持屏幕常亮",
                 summary = "长时间使用 Web UI 时避免息屏",
             )

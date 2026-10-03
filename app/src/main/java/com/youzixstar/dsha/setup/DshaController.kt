@@ -80,13 +80,13 @@ class DshaController(private val context: Context) {
     val blockedByAllowExternalApps: Boolean
         get() = TermuxBridge.isAllowExternalAppsError(bridgeError)
 
-    fun setAutoStart(value: Boolean) {
+    fun updateAutoStart(value: Boolean) {
         prefs.autoStart = value
         autoStart = value
         if (value) maybeAutoStart()
     }
 
-    fun setKeepScreenOn(value: Boolean) {
+    fun updateKeepScreenOn(value: Boolean) {
         prefs.keepScreenOn = value
         keepScreenOn = value
     }
@@ -185,11 +185,15 @@ class DshaController(private val context: Context) {
         timeoutMs = 3 * 60 * 1000L,
     )
 
-    fun stopServer() = runSetupTask(
-        label = "停止 DSH 服务",
-        command = { Scripts.stop(context) },
-        timeoutMs = 60_000L,
-    )
+    fun stopServer() {
+        // 用户主动停止后复位，使下次进入应用仍可按偏好自动启动
+        autoStartAttempted = false
+        runSetupTask(
+            label = "停止 DSH 服务",
+            command = { Scripts.stop(context) },
+            timeoutMs = 60_000L,
+        )
+    }
 
     fun readServerLog() = runConsoleTask("读取 DSH 日志", Scripts.logs(context), 60_000L)
 
