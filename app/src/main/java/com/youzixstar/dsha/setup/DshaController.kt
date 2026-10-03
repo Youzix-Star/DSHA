@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.youzixstar.dsha.data.AppPrefs
 import com.youzixstar.dsha.termux.Scripts
 import com.youzixstar.dsha.termux.TermuxBridge
 import kotlinx.coroutines.CoroutineScope
@@ -21,6 +22,10 @@ import kotlinx.coroutines.launch
 class DshaController(private val context: Context) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val prefs = AppPrefs(context)
+
+    /** 每次进入应用最多自动拉起一次服务，避免反复重试 */
+    private var autoStartAttempted = false
 
     // ---- 环境检测 ----
     var termuxInstalled by mutableStateOf(TermuxBridge.isTermuxInstalled(context))
@@ -56,6 +61,12 @@ class DshaController(private val context: Context) {
     var setupDismissed by mutableStateOf(false)
         private set
 
+    // ---- 偏好设置 ----
+    var autoStart by mutableStateOf(prefs.autoStart)
+        private set
+    var keepScreenOn by mutableStateOf(prefs.keepScreenOn)
+        private set
+
     val setupLog = mutableStateListOf<String>()
     val consoleLog = mutableStateListOf<String>()
 
@@ -68,6 +79,17 @@ class DshaController(private val context: Context) {
     /** 卡在 Termux 的 allow-external-apps 开关上 */
     val blockedByAllowExternalApps: Boolean
         get() = TermuxBridge.isAllowExternalAppsError(bridgeError)
+
+    fun setAutoStart(value: Boolean) {
+        prefs.autoStart = value
+        autoStart = value
+        if (value) maybeAutoStart()
+    }
+
+    fun setKeepScreenOn(value: Boolean) {
+        prefs.keepScreenOn = value
+        keepScreenOn = value
+    }
 
     fun dismissSetup() {
         setupDismissed = true
@@ -113,6 +135,7 @@ class DshaController(private val context: Context) {
                             timeoutMs = 30_000L,
                         ),
                     )
+                    maybeAutoStart()
                 } else {
                     bridgeOk = false
                     bridgeError = probe.errorText
@@ -121,6 +144,15 @@ class DshaController(private val context: Context) {
                 checking = false
             }
         }
+    }
+
+    /** 状态已知且用户开启了自动启动时，拉起一次服务 */
+    private fun maybeAutoStart() {
+        if (!autoStart || autoStartAttempted) return
+        if (busy || serverRunning || !dshBinAvailable) return
+        autoStartAttempted = true
+        appendSetup("> 自动启动 DSH 服务")
+        startServer()
     }
 
     private fun applyStatus(result: TermuxBridge.Result) {

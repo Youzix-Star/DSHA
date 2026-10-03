@@ -1,10 +1,5 @@
 package com.youzixstar.dsha.ui.page
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -32,14 +27,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.youzixstar.dsha.setup.DshaController
 import com.youzixstar.dsha.termux.TermuxBridge
+import com.youzixstar.dsha.ui.TERMUX_FDROID_URL
+import com.youzixstar.dsha.ui.TERMUX_RELEASE_URL
+import com.youzixstar.dsha.ui.copyToClipboard
+import com.youzixstar.dsha.ui.openTermux
+import com.youzixstar.dsha.ui.openUrl
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-
-private const val TERMUX_FDROID_URL = "https://f-droid.org/packages/com.termux/"
-private const val TERMUX_RELEASE_URL = "https://github.com/termux/termux-app/releases"
 
 /** 在 Termux 里执行一次即可开启外部应用调用（本应用无法代改 Termux 私有目录） */
 private const val ALLOW_EXTERNAL_APPS_CMD =
@@ -257,28 +254,4 @@ private fun StepTitle(index: Int, title: String, done: Boolean) {
         )
     }
     Spacer(Modifier.height(4.dp))
-}
-
-private fun openUrl(context: Context, url: String) {
-    runCatching {
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
-}
-
-private fun openTermux(context: Context) {
-    val intent = context.packageManager.getLaunchIntentForPackage(TermuxBridge.TERMUX_PACKAGE)
-    if (intent == null) {
-        openUrl(context, TERMUX_FDROID_URL)
-        return
-    }
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    runCatching { context.startActivity(intent) }
-}
-
-private fun copyToClipboard(context: Context, text: String) {
-    val manager = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
-    manager.setPrimaryClip(ClipData.newPlainText("DSHA", text))
 }

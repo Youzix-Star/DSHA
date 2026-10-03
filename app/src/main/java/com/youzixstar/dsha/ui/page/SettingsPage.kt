@@ -8,13 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.youzixstar.dsha.BuildConfig
 import com.youzixstar.dsha.setup.DshaController
+import com.youzixstar.dsha.ui.openTermux
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -22,8 +21,7 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 @Composable
 fun SettingsPage(controller: DshaController) {
-    var autoStart by remember { mutableStateOf(true) }
-    var keepScreenOn by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -37,7 +35,8 @@ fun SettingsPage(controller: DshaController) {
         Card {
             ArrowPreference(
                 title = "DSH Web UI 地址",
-                summary = DSH_WEB_URL,
+                summary = "$DSH_WEB_URL（由 DSH 自身固定监听本机回环）",
+                enabled = false,
             )
             ArrowPreference(
                 title = "dsh 版本",
@@ -54,6 +53,11 @@ fun SettingsPage(controller: DshaController) {
                 summary = "重新检测 Termux、权限与服务状态",
                 onClick = { controller.reopenSetup() },
             )
+            ArrowPreference(
+                title = "打开 Termux",
+                summary = "需要手动改配置或查看原生终端时使用",
+                onClick = { openTermux(context) },
+            )
         }
 
         Spacer(Modifier.height(12.dp))
@@ -61,14 +65,14 @@ fun SettingsPage(controller: DshaController) {
         SmallTitle("使用")
         Card {
             SwitchPreference(
-                checked = autoStart,
-                onCheckedChange = { autoStart = it },
+                checked = controller.autoStart,
+                onCheckedChange = { controller.setAutoStart(it) },
                 title = "进入应用时自动启动服务",
-                summary = "打开 DSHA 时自动在 Termux 中拉起 DSH",
+                summary = "打开 DSHA 且服务未运行时自动拉起 DSH",
             )
             SwitchPreference(
-                checked = keepScreenOn,
-                onCheckedChange = { keepScreenOn = it },
+                checked = controller.keepScreenOn,
+                onCheckedChange = { controller.setKeepScreenOn(it) },
                 title = "保持屏幕常亮",
                 summary = "长时间使用 Web UI 时避免息屏",
             )
@@ -80,7 +84,7 @@ fun SettingsPage(controller: DshaController) {
         Card {
             ArrowPreference(
                 title = "版本",
-                summary = "0.1.0",
+                summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 enabled = false,
             )
             ArrowPreference(

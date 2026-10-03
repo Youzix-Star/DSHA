@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -11,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.youzixstar.dsha.setup.DshaController
@@ -37,8 +39,14 @@ fun DshaRoot() {
     val context = LocalContext.current.applicationContext
     val controller = remember { DshaController(context) }
     var current by remember { mutableIntStateOf(0) }
+    val view = LocalView.current
 
-    // 回到前台时重新检测：用户可能在 Termux 里改了配置或授权
+    // 保持屏幕常亮
+    SideEffect {
+        view.keepScreenOn = controller.keepScreenOn
+    }
+
+    // 回到前台时重新检测：用户可能在 Termux 里改了配置或刚授予权限
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         controller.refresh()
     }
