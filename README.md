@@ -5,6 +5,13 @@
 在 Android 手机上安装、启动并使用 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`@deepseek-ai/dsh`）。
 UI 使用 [Miuix](https://github.com/compose-miuix-ui/miuix)，与 [InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived) 同一套设计体系。
 
+## 下载安装
+
+最新版本可从 [Releases](https://github.com/Youzix-Star/DSHA/releases/latest) 下载，
+也可以在每个提交的 [Actions](https://github.com/Youzix-Star/DSHA/actions) 运行页里取 `dsha-debug-apk` 产物。
+
+产物是 **debug 签名**的 APK，可直接安装试用（同一版本覆盖安装即可升级）。
+
 ## 当前进度
 
 已完成可编译的应用骨架与 Termux 桥接：
