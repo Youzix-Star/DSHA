@@ -84,7 +84,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # 该作业没有 checkout，gh 无法从 .git 推断仓库，必须显式指定
           gh release create "${GITHUB_REF_NAME}" \
             "${{ steps.apk.outputs.path }}" \
+            --repo "${GITHUB_REPOSITORY}" \
             --title "DSHA ${GITHUB_REF_NAME}" \
             --generate-notes
