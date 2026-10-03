@@ -65,7 +65,9 @@ class DshaController(private val context: Context) {
         private set
     var themeModeIndex by mutableStateOf(prefs.themeModeIndex)
         private set
-    var useLiquidGlass by mutableStateOf(prefs.useLiquidGlass)
+    var barStyle by mutableStateOf(prefs.barStyle)
+        private set
+    var barBlurRadius by mutableStateOf(prefs.barBlurRadius)
         private set
     var developerMode by mutableStateOf(prefs.developerMode)
         private set
@@ -96,9 +98,14 @@ class DshaController(private val context: Context) {
         themeModeIndex = value
     }
 
-    fun updateUseLiquidGlass(value: Boolean) {
-        prefs.useLiquidGlass = value
-        useLiquidGlass = value
+    fun updateBarStyle(value: Int) {
+        prefs.barStyle = value
+        barStyle = value
+    }
+
+    fun updateBarBlurRadius(value: Int) {
+        prefs.barBlurRadius = value
+        barBlurRadius = value
     }
 
     fun updateDeveloperMode(value: Boolean) {

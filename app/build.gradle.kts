@@ -13,8 +13,14 @@ android {
         // 与 NekoPlus 对齐：液态玻璃底栏依赖 miuix-blur，其 AAR 声明 minSdk 33
         minSdk = 33
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // 版本由 CI 依据 git tag 注入。此前这里写死成 0.1.0，导致装了 v0.3.0
+        // 的应用在关于页仍自称 0.1.0；现在没有 tag 时会明确显示 -dev 而不是假版本号。
+        val injectedName = System.getenv("DSHA_VERSION_NAME")
+            ?: (project.findProperty("DSHA_VERSION_NAME") as String?)
+        val injectedCode = System.getenv("DSHA_VERSION_CODE")
+            ?: (project.findProperty("DSHA_VERSION_CODE") as String?)
+        versionCode = injectedCode?.toIntOrNull() ?: 1
+        versionName = injectedName ?: "0.0.0-dev"
     }
 
     compileOptions {

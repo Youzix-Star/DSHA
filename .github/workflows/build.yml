@@ -39,7 +39,23 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            NAME="${GITHUB_REF_NAME#v}"
+          else
+            NAME="0.0.0-${GITHUB_SHA::7}"
+          fi
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "版本: ${NAME} (${GITHUB_RUN_NUMBER})"
+
       - name: Assemble debug
+        env:
+          DSHA_VERSION_NAME: ${{ steps.version.outputs.name }}
+          DSHA_VERSION_CODE: ${{ steps.version.outputs.code }}
         run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK

@@ -24,10 +24,20 @@ class AppPrefs(context: Context) {
         get() = sp.getInt(KEY_THEME_MODE, 0)
         set(value) = sp.edit().putInt(KEY_THEME_MODE, value).apply()
 
-    /** 液态玻璃（背景模糊）开关，默认开启。 */
-    var useLiquidGlass: Boolean
-        get() = sp.getBoolean(KEY_LIQUID_GLASS, true)
-        set(value) = sp.edit().putBoolean(KEY_LIQUID_GLASS, value).apply()
+    /**
+     * 底栏样式档位，见 [com.youzixstar.dsha.ui.miuix.BarStyle]。
+     *
+     * 默认「标准」：走 miuix 的 textureBlur 单 pass 纹理模糊，只有 blurRadius
+     * 一个半径参数，开销远低于液态玻璃的多 pass 折射。
+     */
+    var barStyle: Int
+        get() = sp.getInt(KEY_BAR_STYLE, BAR_STYLE_STANDARD)
+        set(value) = sp.edit().putInt(KEY_BAR_STYLE, value).apply()
+
+    /** 底栏模糊半径（dp）。仅「标准」档生效，对应 miuix textureBlur 的 blurRadius。 */
+    var barBlurRadius: Int
+        get() = sp.getInt(KEY_BAR_BLUR_RADIUS, 25)
+        set(value) = sp.edit().putInt(KEY_BAR_BLUR_RADIUS, value).apply()
 
     /** 开发者模式：在关于页连点三次彩蛋开启。 */
     var developerMode: Boolean
@@ -38,7 +48,11 @@ class AppPrefs(context: Context) {
         const val KEY_AUTO_START = "auto_start"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
         const val KEY_THEME_MODE = "theme_mode"
-        const val KEY_LIQUID_GLASS = "liquid_glass"
+        const val KEY_BAR_STYLE = "bar_style"
+        const val KEY_BAR_BLUR_RADIUS = "bar_blur_radius"
+
+        /** 与 [com.youzixstar.dsha.ui.miuix.BarStyle] 的序号一致，避免 data 层依赖 ui 层。 */
+        const val BAR_STYLE_STANDARD = 0
         const val KEY_DEVELOPER_MODE = "developer_mode"
     }
 }
