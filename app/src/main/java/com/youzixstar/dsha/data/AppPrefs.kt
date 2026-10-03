@@ -5,7 +5,7 @@ import android.content.Context
 /**
  * 轻量偏好存储。
  *
- * 目前只有三个键，用不上 DataStore，SharedPreferences 足够且无额外依赖。
+ * 目前只有几个键，用不上 DataStore，SharedPreferences 足够且无额外依赖。
  */
 class AppPrefs(context: Context) {
 
@@ -19,8 +19,20 @@ class AppPrefs(context: Context) {
         get() = sp.getBoolean(KEY_KEEP_SCREEN_ON, false)
         set(value) = sp.edit().putBoolean(KEY_KEEP_SCREEN_ON, value).apply()
 
+    /** 主题模式在 [com.youzixstar.dsha.ui.miuix.ThemeModeOptions] 中的下标。 */
+    var themeModeIndex: Int
+        get() = sp.getInt(KEY_THEME_MODE, 0)
+        set(value) = sp.edit().putInt(KEY_THEME_MODE, value).apply()
+
+    /** 液态玻璃（背景模糊）开关，默认开启。 */
+    var useLiquidGlass: Boolean
+        get() = sp.getBoolean(KEY_LIQUID_GLASS, true)
+        set(value) = sp.edit().putBoolean(KEY_LIQUID_GLASS, value).apply()
+
     private companion object {
         const val KEY_AUTO_START = "auto_start"
         const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
+        const val KEY_THEME_MODE = "theme_mode"
+        const val KEY_LIQUID_GLASS = "liquid_glass"
     }
 }

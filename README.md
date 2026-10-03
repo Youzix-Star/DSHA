@@ -3,7 +3,8 @@
 > DeepSeek Harness 的 Android 图形化安装器 · 基于 Termux
 
 在 Android 手机上安装、启动并使用 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`@deepseek-ai/dsh`）。
-UI 使用 [Miuix](https://github.com/compose-miuix-ui/miuix)，与 [InstallerX Revived](https://github.com/wxxsfxyzm/InstallerX-Revived) 同一套设计体系。
+
+界面与 [NekoPlus](https://github.com/Youzix-Star/NekoPlus) 同一套框架：Miuix 组件库 + 液态玻璃悬浮底栏 + 大标题顶栏。
 
 ## 下载安装
 
@@ -12,23 +13,36 @@ UI 使用 [Miuix](https://github.com/compose-miuix-ui/miuix)，与 [InstallerX R
 
 产物是 **debug 签名**的 APK，可直接安装试用（同一版本覆盖安装即可升级）。
 
-## 当前进度
+## 界面结构
 
-已完成可编译的应用骨架与 Termux 桥接：
+四个页签，可左右滑动切换：
 
-- **悬浮底栏**（Miuix `FloatingNavigationBar`）承载三个页面：网页 / 终端 / 设置
-- **安装引导**：环境未就绪时作为门禁展示，逐步引导
-- **Termux 桥接**：走 Termux 公开的 `RUN_COMMAND` 接口执行命令并回收结果
-- **终端页**：命令输入 + 输出回显 + 服务启停 / 日志查看
-- **网页页**：WebView 承载 DSH Web UI（`http://127.0.0.1:3080`）
+| 页签 | 内容 |
+| :-- | :-- |
+| 首页 | 主状态卡（DSH 服务）+ Termux 桥接、运行环境两张紧凑卡 + 三项统计 + 概览 |
+| 网页 | 内嵌 WebView，承载 DSH 的 Web UI（默认 `http://127.0.0.1:3080`） |
+| 终端 | 命令输入与输出回显，可启停服务、查看日志 |
+| 设置 | 主题、自动启动、屏幕常亮、液态玻璃，以及运行环境信息 |
 
-## 架构决策
+一级返回从任意页签回到首页；「环境配置引导」是二级页面，带独立返回。
 
-本项目**有意选择**通过 Termux 授权驱动，而非在 APK 内内置 Termux 或 Linux 容器。
-这一决策的实测依据（含 `RUNPATH`、proot 性能数据与备选方案排除理由）记录在
-[`docs/DECISIONS.md`](docs/DECISIONS.md)，避免后续重复调研。
+## 内边距约定（重要）
+
+**miuix 的 `Card` 默认内边距是 0**（`CardDefaults.InsideMargin = PaddingValues(0.dp)`），
+所以卡内直接放裸 `Text` / `Row` 时文字会紧贴卡片边缘。本项目遵循两条规则：
+
+| 卡内内容 | 做法 |
+| :-- | :-- |
+| miuix 偏好组件（`SwitchPreference`、`ArrowPreference`、`BasicComponent` 等） | **不要**给 Card 设 `insideMargin`——这些组件自带 16dp，外层再给会双重留白 |
+| 裸 `Text` / `Row` / `Column` | **必须**显式给 `insideMargin`（首页主状态卡 20dp、紧凑卡与统计卡 16~18dp、引导步骤卡 20/18dp） |
+
+页面级留白不手写：外壳把 `Scaffold` 的 `innerPadding` 加上 12dp 后作为
+`contentPadding` 交给每个页面，页面用 `LazyColumn(contentPadding = ...)` 消费。
 
 ## 安装引导的五个步骤
+
+环境未就绪时，首页的状态卡会直接指出缺哪一项，点一下即执行对应的修复动作；
+「设置 → 环境配置引导」里有完整的逐步说明。
 
 | 步骤 | 检测方式 | 需要用户做什么 |
 | :-- | :-- | :-- |
@@ -45,6 +59,12 @@ UI 使用 [Miuix](https://github.com/compose-miuix-ui/miuix)，与 [InstallerX R
 echo 'allow-external-apps = true' >> ~/.termux/termux.properties && termux-reload-settings
 ```
 
+## 架构决策
+
+本项目**有意选择**通过 Termux 授权驱动，而非在 APK 内内置 Termux 或 Linux 容器。
+这一决策的实测依据（含 `RUNPATH`、proot 性能数据与备选方案排除理由）记录在
+[`docs/DECISIONS.md`](docs/DECISIONS.md)，避免后续重复调研。
+
 ## 与 Termux 的通信方式
 
 使用 Termux 官方公开的 [RUN_COMMAND 接口](https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent)：
@@ -56,8 +76,7 @@ echo 'allow-external-apps = true' >> ~/.termux/termux.properties && termux-reloa
 ## 终端页的说明
 
 终端页是「Termux 命令 + 输出回显」的控制台，**不是完整的交互式 PTY**。
-真正的 PTY 终端需要内置 Termux 的终端模拟器原生库（`terminal-emulator` / `terminal-view`），
-属于后续版本的工作，当前版本先保证命令执行与输出可见这条主链路可用。
+真正的 PTY 终端需要内置终端模拟器原生库，属于后续版本的工作。
 
 ## 构建
 
@@ -65,9 +84,10 @@ echo 'allow-external-apps = true' >> ~/.termux/termux.properties && termux-reloa
 [Actions](https://github.com/Youzix-Star/DSHA/actions) 下载 `dsha-debug-apk` 产物。
 
 - 工具链：AGP 9.4.1 / Kotlin 2.4.20 / Compose BOM 2026.09.00 / JDK 25
-- `compileSdk 37`，`minSdk 26`，`targetSdk 37`
-- Miuix 0.9.4 来自 Maven Central，无需任何私有仓库鉴权
+- `compileSdk 37`，`minSdk 33`，`targetSdk 37`
+  （minSdk 33 是对齐 NekoPlus：液态玻璃底栏依赖 `miuix-blur`，其 AAR 声明 minSdk 33）
+- Miuix 0.9.4 与 material-icons-extended 1.7.8 分别来自 Maven Central 与 Google Maven，均无需鉴权
 
 ## 许可
 
-GPL-3.0。详见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。
+AGPL-3.0。详见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。

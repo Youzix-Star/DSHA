@@ -2,27 +2,41 @@ DSHA — DeepSeek Harness for Android 安装器
 Copyright (C) 2026 Youzix_Star
 
 本程序是自由软件：你可以再分发和/或修改它，遵循自由软件基金会发布的
-GNU 通用公共许可证第 3 版（或你选择的任何更新版本）的条款。
+GNU Affero 通用公共许可证第 3 版（或你选择的任何更新版本）的条款。
 
 本程序基于以下开源项目构建，在此致谢：
 
-1. InstallerX Revived  — https://github.com/wxxsfxyzm/InstallerX-Revived
-   许可证：GPL-3.0
-   用途：本项目的 UI 方案、页面组织方式与交互约定参考/照搬自该项目。
-         InstallerX Revived 是 GPL-3.0 项目，因此 DSHA 亦以 GPL-3.0 发布。
+1. NekoPlus — https://github.com/Youzix-Star/NekoPlus
+   许可证：AGPL-3.0-only（界面框架部分）
+   用途：本项目的基础 UI 框架直接来自该项目——主题（ThemeModeOptions /
+         isInDarkTheme）、文本域配色、图标表、应用外壳（大标题顶栏 + 悬浮底栏
+         + 可滑动页签 + SnackbarHost）以及首页状态卡（StatusCard /
+         CompactStatusCard / StatisticCard）。
+   备注：两个项目版权持有人相同；因拷贝了 AGPL-3.0-only 代码，DSHA 亦以
+         AGPL-3.0 发布。
 
-2. Miuix (compose-miuix-ui) — https://github.com/compose-miuix-ui/miuix
+2. compose-miuix-ui / miuix — https://github.com/compose-miuix-ui/miuix
    许可证：Apache-2.0
-   用途：底层 UI 组件库（Compose Multiplatform），通过 Maven Central
-         坐标 top.yukonga.miuix.kmp:* 以依赖方式使用，未修改其源码。
+   用途：(a) 底层 UI 组件库，通过 Maven Central 坐标 top.yukonga.miuix.kmp:*
+         以依赖方式使用；(b) 液态玻璃底栏及其配套组件
+         （FloatingBottomBar / Lens / InnerShadow / Vibrancy /
+         CombinedBackdrop / DampedDragAnimation / InteractiveHighlight）
+         为 Apache-2.0 代码，经 NekoPlus 转手后在本项目沿用，文件头保留原
+         版权与 SPDX 标识。
 
-3. Termux / termux-app — https://github.com/termux/termux-app
+3. InstallerX Revived — https://github.com/wxxsfxyzm/InstallerX-Revived
+   许可证：GPL-3.0
+   用途：本项目参考了该项目的页面组织方式、内边距约定与交互规范
+         （尤其"卡内放 miuix 偏好组件时不重复给 insideMargin"这一约定，
+         以及 miuix-blur 的接入方式）。未拷贝其源码。
+
+4. Termux / termux-app — https://github.com/termux/termux-app
    许可证：GPL-3.0
    用途：作为运行宿主环境，通过其公开的 RUN_COMMAND 接口调用，
          未包含或修改其源码。
 
-4. deepseek-harness-android — https://github.com/FunnelCakes/deepseek-harness-android
+5. deepseek-harness-android — https://github.com/FunnelCakes/deepseek-harness-android
    用途：Android/Termux 上安装与运行 DSH 的脚本方案，本安装器在其之上提供图形界面。
 
-5. DeepSeek Harness (@deepseek-ai/dsh) — https://github.com/deepseek-ai/deepseek-harness
+6. DeepSeek Harness (@deepseek-ai/dsh) — https://github.com/deepseek-ai/deepseek-harness
    用途：本安装器所安装与托管的目标程序。

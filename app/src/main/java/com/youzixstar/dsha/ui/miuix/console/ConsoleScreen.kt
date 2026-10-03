@@ -1,7 +1,13 @@
-package com.youzixstar.dsha.ui.page
+/*
+ * Copyright 2026, Youzix-Star
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+package com.youzixstar.dsha.ui.miuix.console
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,23 +26,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.youzixstar.dsha.setup.DshaController
+import com.youzixstar.dsha.ui.miuix.dshaTextFieldColors
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 终端页：把命令交给 Termux 执行，并把输出汇总在这里。
+ * 终端页：命令交给 Termux 执行，输出汇总在这里。
  *
- * 说明：这里不是完整的本地 PTY 终端，而是「Termux 命令 + 输出回显」的控制台。
- * 完整的交互式终端需要内置 Termux 的终端模拟器原生库，留待后续版本。
+ * 这是「命令 + 输出回显」的控制台，不是完整的交互式 PTY；
+ * 真 PTY 需要内置终端模拟器原生库，属于后续工作。
  */
 @Composable
-fun ConsolePage(controller: DshaController) {
+fun ConsoleScreen(
+    controller: DshaController,
+    contentPadding: PaddingValues,
+    scrollBehavior: ScrollBehavior,
+    onNotify: (String) -> Unit,
+) {
     var input by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
@@ -49,23 +61,25 @@ fun ConsolePage(controller: DshaController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp),
+            .padding(contentPadding),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Spacer(Modifier.height(12.dp))
-
-        SmallTitle("服务状态")
-        Card {
-            StatusRow("Termux", if (controller.termuxInstalled) "已安装" else "未安装")
-            StatusRow("命令桥接", if (controller.bridgeOk) "已连通" else "未连通")
-            StatusRow("dsh 命令", if (controller.dshBinAvailable) controller.dshVersion else "未就绪")
-            StatusRow("Node", controller.nodeVersion)
-            StatusRow("Web 服务", if (controller.serverRunning) "运行中 · 127.0.0.1:3080" else "已停止")
-
-            Spacer(Modifier.height(8.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            insideMargin = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+        ) {
+            Text(
+                text = "服务控制",
+                style = MiuixTheme.textStyles.title4,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = { controller.startServer() },
-                    enabled = controller.dshBinAvailable && !controller.busy && !controller.serverRunning,
+                    enabled = controller.dshBinAvailable &&
+                        !controller.busy &&
+                        !controller.serverRunning,
                 ) {
                     Text("启动")
                 }
@@ -82,28 +96,38 @@ fun ConsolePage(controller: DshaController) {
                     Text("日志")
                 }
                 Button(
-                    onClick = { controller.clearConsole() },
+                    onClick = {
+                        controller.clearConsole()
+                        onNotify("已清空")
+                    },
                     enabled = controller.consoleLog.isNotEmpty() && !controller.busy,
                 ) {
                     Text("清空")
                 }
             }
             if (controller.busy) {
-                Spacer(Modifier.height(6.dp))
-                Text("${controller.busyLabel} …", fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "${controller.busyLabel} …",
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
             }
         }
 
-        Spacer(Modifier.height(12.dp))
-
-        SmallTitle("控制台")
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
+            insideMargin = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         ) {
             if (controller.consoleLog.isEmpty()) {
-                Text("在下面输入命令，会在本机 Termux 中执行，输出显示在这里。例如：pkg list-installed | head")
+                Text(
+                    text = "在下面输入命令，会在本机 Termux 中执行，输出显示在这里。" +
+                        "例如：pkg list-installed | head",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -115,17 +139,17 @@ fun ConsolePage(controller: DshaController) {
                         Text(
                             text = line,
                             fontFamily = FontFamily.Monospace,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurface,
                         )
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(8.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextField(
@@ -133,6 +157,7 @@ fun ConsolePage(controller: DshaController) {
                 onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
                 label = "输入命令",
+                colors = dshaTextFieldColors(),
                 enabled = controller.bridgeOk,
                 singleLine = true,
             )
@@ -146,19 +171,5 @@ fun ConsolePage(controller: DshaController) {
                 Text("执行")
             }
         }
-
-        Spacer(Modifier.height(12.dp))
-    }
-}
-
-@Composable
-private fun StatusRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label)
-        Text(value, fontWeight = FontWeight.SemiBold)
     }
 }

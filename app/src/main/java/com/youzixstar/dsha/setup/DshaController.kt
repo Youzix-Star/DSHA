@@ -58,13 +58,14 @@ class DshaController(private val context: Context) {
         private set
     var busyLabel by mutableStateOf("")
         private set
-    var setupDismissed by mutableStateOf(false)
-        private set
-
     // ---- 偏好设置 ----
     var autoStart by mutableStateOf(prefs.autoStart)
         private set
     var keepScreenOn by mutableStateOf(prefs.keepScreenOn)
+        private set
+    var themeModeIndex by mutableStateOf(prefs.themeModeIndex)
+        private set
+    var useLiquidGlass by mutableStateOf(prefs.useLiquidGlass)
         private set
 
     val setupLog = mutableStateListOf<String>()
@@ -72,9 +73,6 @@ class DshaController(private val context: Context) {
 
     /** 桥接与 dsh 命令均可用，功能完整 */
     val ready: Boolean get() = bridgeOk && dshBinAvailable
-
-    /** 是否展示安装引导（未就绪且用户没有主动跳过） */
-    val showSetup: Boolean get() = !ready && !setupDismissed
 
     /** 卡在 Termux 的 allow-external-apps 开关上 */
     val blockedByAllowExternalApps: Boolean
@@ -91,13 +89,14 @@ class DshaController(private val context: Context) {
         keepScreenOn = value
     }
 
-    fun dismissSetup() {
-        setupDismissed = true
+    fun updateThemeModeIndex(value: Int) {
+        prefs.themeModeIndex = value
+        themeModeIndex = value
     }
 
-    fun reopenSetup() {
-        setupDismissed = false
-        refresh()
+    fun updateUseLiquidGlass(value: Boolean) {
+        prefs.useLiquidGlass = value
+        useLiquidGlass = value
     }
 
     /** 重新检测环境与运行状态 */

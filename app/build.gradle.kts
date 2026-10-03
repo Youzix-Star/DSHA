@@ -10,7 +10,8 @@ android {
 
     defaultConfig {
         applicationId = "com.youzixstar.dsha"
-        minSdk = 26
+        // 与 NekoPlus 对齐：液态玻璃底栏依赖 miuix-blur，其 AAR 声明 minSdk 33
+        minSdk = 33
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
@@ -49,10 +50,13 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material.icons.extended)
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.miuix.core)
     implementation(libs.miuix.ui)
     implementation(libs.miuix.preference)
     implementation(libs.miuix.icons)
+    implementation(libs.miuix.blur)
 }

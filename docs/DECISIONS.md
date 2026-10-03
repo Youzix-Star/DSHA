@@ -50,9 +50,13 @@ Termux 官方 README 亦明确：改包名需重建 bootstrap **以及其它软�
 机制为 proot + proot-distro + Ubuntu 24.04 rootfs，native 二进制改名 `lib*.so`
 放入 `jniLibs`（借 Android 解包机制获得可执行权限），包名为独立的 `com.nightmare.code`。
 
-实测（本机华为 Mate 60 / HarmonyOS 4.2）**proot 完全可用**：
+实测（本机 MEIZU 18 / Android 16，API 36）**proot 完全可用**：
 `proot -r / -b /dev -b /proc -b /sys -0 id` 返回 `uid=0(root)`，
-说明该 ROM 的 SELinux 未拦截 ptrace。
+说明该机型的 SELinux 未拦截 ptrace。
+
+> 勘误：本节早先误记为“华为 Mate 60 / HarmonyOS 4.2”，那是
+> `deepseek-harness-android` README 里作者的另一台测试机，并非本机。
+> 结论不受影响，但机型信息应以上述实测环境为准。
 
 实测开销：
 
