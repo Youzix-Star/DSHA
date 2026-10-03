@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,6 +114,12 @@ private fun DshaShell(controller: DshaController) {
     // 而严重掉帧，所以该页签不参与背景层捕获（底栏本身照常是玻璃质感）。
     val onWebTab = currentTab == TAB_WEB
 
+    // 首次进入「网页」页签后让 WebView 常驻：切页签不再重新加载那几十个插件模块
+    var webOpened by remember { mutableStateOf(false) }
+    LaunchedEffect(currentTab) {
+        if (currentTab == TAB_WEB) webOpened = true
+    }
+
     // 一级返回：从任意页签回到首页
     BackHandler(enabled = subPage == null && currentTab != TAB_HOME) {
         scope.launch { pagerState.animateScrollToPage(TAB_HOME) }
@@ -161,42 +168,57 @@ private fun DshaShell(controller: DshaController) {
                     bottom = innerPadding.calculateBottomPadding() + 12.dp,
                 )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(if (onWebTab) Modifier else Modifier.layerBackdrop(backdrop))
-                        .imePadding(),
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                    ) { index ->
-                        when (index) {
-                            TAB_HOME -> HomeScreen(
-                                controller = controller,
-                                contentPadding = pagePadding,
-                                scrollBehavior = scrollBehavior,
-                                onNotify = notify,
-                                onOpenGuide = { subPage = DshaSubPage.Guide },
-                            )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (onWebTab) Modifier else Modifier.layerBackdrop(backdrop))
+                            .imePadding(),
+                    ) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize(),
+                            userScrollEnabled = true,
+                        ) { index ->
+                            when (index) {
+                                TAB_HOME -> HomeScreen(
+                                    controller = controller,
+                                    contentPadding = pagePadding,
+                                    scrollBehavior = scrollBehavior,
+                                    onNotify = notify,
+                                    onOpenGuide = { subPage = DshaSubPage.Guide },
+                                )
 
-                            TAB_WEB -> WebScreen(contentPadding = pagePadding)
+                                // 该页签的内容由外层的常驻 WebView 承载
+                                TAB_WEB -> Unit
 
-                            TAB_CONSOLE -> ConsoleScreen(
-                                controller = controller,
-                                contentPadding = pagePadding,
-                                scrollBehavior = scrollBehavior,
-                                onNotify = notify,
-                            )
+                                TAB_CONSOLE -> ConsoleScreen(
+                                    controller = controller,
+                                    contentPadding = pagePadding,
+                                    scrollBehavior = scrollBehavior,
+                                    onNotify = notify,
+                                )
 
-                            else -> SettingsScreen(
-                                controller = controller,
-                                contentPadding = pagePadding,
-                                scrollBehavior = scrollBehavior,
-                                onOpenGuide = { subPage = DshaSubPage.Guide },
-                                onNotify = notify,
-                            )
+                                else -> SettingsScreen(
+                                    controller = controller,
+                                    contentPadding = pagePadding,
+                                    scrollBehavior = scrollBehavior,
+                                    onOpenGuide = { subPage = DshaSubPage.Guide },
+                                    onNotify = notify,
+                                )
+                            }
+                        }
+                    }
+
+                    // 常驻 WebView：不在 pager 内、不在 backdrop 图层内，
+                    // 并用 pagePadding 让出顶栏与底栏的空间，避免原生视图盖住悬浮底栏。
+                    if (webOpened) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(pagePadding),
+                        ) {
+                            WebScreen(visible = onWebTab)
                         }
                     }
                 }

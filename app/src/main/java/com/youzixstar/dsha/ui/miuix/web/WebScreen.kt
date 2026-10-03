@@ -13,10 +13,10 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.view.View
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,27 +59,28 @@ private sealed interface WebStatus {
  * 内嵌 DSH 的 Web UI。
  *
  * 用的是 **Android 系统自带 WebView**（系统里的 Chromium 内核），不是自研引擎。
- * 页面加载失败时不再是一片空白：这里会把 WebView 报出的错误码、HTTP 状态码
- * 以及网页控制台输出直接显示出来，便于定位。
+ *
+ * 结构上刻意不放进 HorizontalPager、也不放进任何 backdrop 记录图层里：
+ * WebView 是独立的原生 View，被 pager 的 graphicsLayer 或被逐帧重录的图层罩住时
+ * 会出现「加载完成但画不出来」的情况。这里由外壳把它作为普通兄弟节点承载，
+ * 并用 [visible] 控制它自己（而不是靠 Compose 的 alpha/zIndex）显示与隐藏，
+ * 从而在切页签时不重新加载、也不残留绘制开销。
  */
 @Composable
-fun WebScreen(contentPadding: PaddingValues) {
+fun WebScreen(visible: Boolean) {
     val context = LocalContext.current
     var status by remember { mutableStateOf<WebStatus>(WebStatus.Loading) }
     val console = remember { mutableStateListOf<String>() }
     var reloadKey by remember { mutableIntStateOf(0) }
     var showConsole by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         key(reloadKey) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     WebView(ctx).apply {
+                        visibility = if (visible) View.VISIBLE else View.GONE
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
                         settings.mediaPlaybackRequiresUserGesture = false
@@ -138,10 +139,13 @@ fun WebScreen(contentPadding: PaddingValues) {
                         loadUrl(DSH_WEB_URL)
                     }
                 },
+                update = { view ->
+                    view.visibility = if (visible) View.VISIBLE else View.GONE
+                },
             )
         }
 
-        if (status !is WebStatus.Loaded) {
+        if (visible && status !is WebStatus.Loaded) {
             val failed = status as? WebStatus.Failed
             Card(
                 modifier = Modifier
